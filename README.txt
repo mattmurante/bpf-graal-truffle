@@ -5,3 +5,10 @@ To run the project using gradle, first ensure the $JAVA_HOME is pointing to the 
 ./gradlew run --args="someBPFprogram.bpf"
 
 will result in the VM printing and returning the result of the given (e)BPF program.
+
+GraalVM releases can be found at https://github.com/graalvm/graalvm-ce-builds/releases. Graal 20.0.0 for Java 8 was used for this project.
+
+Potential Improvements:
+- Add (e)BPF call instruction
+- Update from ancient Java 8 (if possible while keeping compatible with Truffle)
+- Improve use of Truffle framework and interaction with Graal compiler for improved performance
