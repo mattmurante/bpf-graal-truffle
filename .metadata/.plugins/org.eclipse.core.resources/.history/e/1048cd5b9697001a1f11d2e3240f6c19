@@ -1,0 +1,15 @@
+package BPF.Graal;
+
+//Inspired from MemoryRegion class in RPython implementation
+
+public class MemoryRegion {
+	
+	private long start;
+	private long end;
+	private long region;
+	
+	public MemoryRegion(long start, Object[] region) {
+		
+	}
+	
+}

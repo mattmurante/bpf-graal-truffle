@@ -1,0 +1,8 @@
+package BPF.Graal;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+//May want to delete this class, may not be needed if specialization works the way I think it does
+abstract class BaseNode extends Node {
+	abstract Object execute(VirtualFrame frame);
+}

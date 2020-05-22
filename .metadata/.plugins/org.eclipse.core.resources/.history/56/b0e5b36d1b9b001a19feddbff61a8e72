@@ -1,0 +1,472 @@
+/*
+
+package BPF.Graal;
+
+import static BPF.Graal.EBPFOpcodes.*;
+
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+
+//Executes different tasks based on what opcode is given
+
+class InstructionNode extends Node {
+	
+	protected final byte opcode;
+	protected final byte srcReg;
+	protected final byte destReg;
+	protected final short offset;
+	protected final int imm;
+	
+    public InstructionNode(byte opcode, byte regs, short offset, int imm){
+        this.opcode = opcode;
+        this.srcReg = (byte) ((regs >>> 4) & 0x0f);
+        this.destReg = (byte) (regs & 0x0f);
+        this.offset = offset;
+        this.imm = imm;
+    }
+    
+    //Read and write methods from RPython implementation
+    
+    //Convenience method to write to memory
+    public void write(Memory memory, long addr, int size, long value) {
+    	//Load the memory region
+    	MemoryRegion r;
+    	try {
+			r = memory.getRegion(addr);
+		} catch (Exception e) {
+			throw new NotYetImplemented();
+		}
+    	//Ensure data size is valid
+    	if (!(size == 1 || size == 2 || size == 4 || size == 8)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Check alignment
+    	assert (addr & (size-1)) == 0 : "Value to write not aligned to address";
+    	//Write to memory
+    	for (long index = (addr-r.getStart()); index < (addr-r.getStart()) + size; index++) {
+    		r.getRegion()[(int) index] = (byte) (value & 0xff);
+    		value >>>= 8;
+    	}
+    }
+    
+    //Convenience method to read from memory
+    public long read(Memory memory, long addr, int size) {
+    	//Load the memory region
+    	MemoryRegion r;
+    	try {
+			r = memory.getRegion(addr);
+		} catch (Exception e) {
+			throw new NotYetImplemented();
+		}
+    	//Ensure data size is valid
+    	if (!(size == 1 || size == 2 || size == 4 || size == 8)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Check alignment
+    	assert (addr & (size-1)) == 0 : "Value to write not aligned to address";
+    	//Read from memory
+    	long value = 0;
+    	int counter = 0;
+    	for (long index = (addr-r.getStart()); index < (addr-r.getStart()) + size; index++) {
+    		value |= (r.getRegion()[(int) index] << counter);
+    		counter += 8;
+    	}
+    	return value;
+    }
+    
+    //Throws not yet implemented if an opcode has no associated method
+    public Object execute(VirtualFrame frame) throws FrameSlotTypeException {
+    	//Loading stored program information from frame
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	FrameSlot memSlot = frame.getFrameDescriptor().findFrameSlot("mem");
+    	int pc = frame.getInt(pcSlot);
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	Memory memory = (Memory) frame.getValue(memSlot);
+    	//Specializations for instruction nodes based on opcode
+    	switch(opcode) {
+    		case EBPF_OP_STXDW:
+    			write(memory, regs[destReg] + offset, 8, regs[srcReg]);
+    	    	frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STXW:
+    			write(memory, regs[destReg] + offset, 4, regs[srcReg]);
+    	    	frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_LDXDW:
+    			regs[destReg] = read(memory, regs[srcReg] + offset, 8);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LDXW:
+    			regs[destReg] = read(memory, regs[srcReg] + offset, 4);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LDDW:
+    			regs[destReg] = Integer.toUnsignedLong(imm);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV_IMM:
+    			regs[destReg] = Integer.toUnsignedLong(imm);
+    	    	regs[destReg] &= 0xffffffff;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV64_IMM:
+    			regs[destReg] = Integer.toUnsignedLong(imm);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV64_REG:
+    	    	regs[destReg] = regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LSH64_IMM:
+    	    	regs[destReg] <<= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_RSH64_IMM:
+    			regs[destReg] >>>= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_ARSH64_IMM:
+    	    	regs[destReg] >>= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MUL64_REG:
+    	    	regs[destReg] *= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MUL64_IMM:
+    	    	regs[destReg] *= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_OR64_REG:
+    	    	regs[destReg] |= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_AND64_IMM:
+    	    	regs[destReg] &= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    case EBPF_OP_ADD64_IMM:
+    	    	regs[destReg] += imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    case EBPF_OP_ADD64_REG:
+    	    	regs[destReg] += regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    case EBPF_OP_SUB64_REG:
+    	    	regs[destReg] -= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    case EBPF_OP_DIV64_REG:
+    	    	regs[destReg] = Long.divideUnsigned(regs[destReg], regs[srcReg]);
+    	    	frame.setObject(regsSlot, regs);
+    	    case EBPF_OP_DIV64_IMM:
+    	    	regs[destReg] /= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    case EBPF_OP_JEQ_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], Integer.toUnsignedLong(imm)) == 0) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JNE_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], Integer.toUnsignedLong(imm)) != 0) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JEQ_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) == 0) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JGE_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) >= 0) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JGT_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) > 0) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JGT_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], Integer.toUnsignedLong(imm)) > 0) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JSGT_REG:
+    	    	if (regs[destReg] > regs[srcReg]) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JSGT_IMM:
+    	    	if (regs[destReg] > imm) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JSGE_REG:
+    	       	if (regs[destReg] >= regs[srcReg]) {
+    	    		frame.setInt(pcSlot, pc + offset);
+    	    	}
+    	    case EBPF_OP_JA:
+    	    	frame.setInt(pcSlot, pc + offset);
+    		default:
+    			throw new NotYetImplemented();
+    	}
+    	return 0;
+    }
+    
+}
+
+
+
+
+
+package BPF.Graal;
+
+import static BPF.Graal.EBPFOpcodes.*;
+
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+
+//Executes different tasks based on what opcode is given
+
+class InstructionNode extends Node {
+	
+	protected final byte opcode;
+	protected final byte srcReg;
+	protected final byte destReg;
+	protected final short offset;
+	protected final int imm;
+	
+    public InstructionNode(byte opcode, byte regs, short offset, int imm){
+        this.opcode = opcode;
+        this.srcReg = (byte) ((regs >>> 4) & 0x0f);
+        this.destReg = (byte) (regs & 0x0f);
+        this.offset = offset;
+        this.imm = imm;
+    }
+    
+    //Read and write methods from RPython implementation
+    
+    //Convenience method to write to memory
+    public void write(Memory memory, long addr, int size, long value) {
+    	//Load the memory region
+    	MemoryRegion r;
+    	try {
+			r = memory.getRegion(addr);
+		} catch (Exception e) {
+			throw new NotYetImplemented();
+		}
+    	//Ensure data size is valid
+    	if (!(size == 1 || size == 2 || size == 4 || size == 8)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Check alignment
+    	assert (addr & (size-1)) == 0 : "Value to write not aligned to address";
+    	//Write to memory
+    	for (long index = (addr-r.getStart()); index < (addr-r.getStart()) + size; index++) {
+    		r.getRegion()[(int) index] = (byte) (value & 0xff);
+    		value >>>= 8;
+    	}
+    }
+    
+    //Convenience method to read from memory
+    public long read(Memory memory, long addr, int size) {
+    	//Load the memory region
+    	MemoryRegion r;
+    	try {
+			r = memory.getRegion(addr);
+		} catch (Exception e) {
+			throw new NotYetImplemented();
+		}
+    	//Ensure data size is valid
+    	if (!(size == 1 || size == 2 || size == 4 || size == 8)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Check alignment
+    	assert (addr & (size-1)) == 0 : "Value to write not aligned to address";
+    	//Read from memory
+    	long value = 0;
+    	int counter = 0;
+    	for (long index = (addr-r.getStart()); index < (addr-r.getStart()) + size; index++) {
+    		value |= (r.getRegion()[(int) index] << counter);
+    		counter += 8;
+    	}
+    	return value;
+    }
+    
+    //Throws not yet implemented if an opcode has no associated method
+    public Object execute(VirtualFrame frame) {
+    	throw new NotYetImplemented();
+    }
+    
+	//Specializations for instruction nodes based on opcode
+    
+    @Specialization(guards = {"opcode == EBPF_OP_MUL64_REG"})
+    public void do_MUL64_REG(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] *= regs[srcReg];
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_MUL64_IMM"})
+    public void do_MUL64_IMM(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] *= imm;
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_OR64_REG"})
+    public void do_OR64_REG(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] |= regs[srcReg];
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_AND64_IMM"})
+    public void do_AND64_IMM(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] &= imm;
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPFOpcodes.EBPF_OP_ADD64_IMM"})
+    public void do_ADD64_IMM(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] += imm;
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_ADD64_REG"})
+    public void do_ADD64_REG(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] += regs[srcReg];
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_SUB64_REG"})
+    public void do_SUB64_REG(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] -= regs[srcReg];
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_DIV64_REG"})
+    public void do_DIV64_REG(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] = Long.divideUnsigned(regs[destReg], regs[srcReg]);
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_DIV64_IMM"})
+    public void do_DIV64_IMM(VirtualFrame frame) {
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	Long[] regs = (Long[]) frame.getValue(regsSlot);
+    	regs[destReg] /= imm;
+    	frame.setObject(regsSlot, regs);
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JEQ_IMM"})
+    public void do_JEQ_IMM(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (Long.compareUnsigned(regs[destReg], Integer.toUnsignedLong(imm)) == 0) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JNE_IMM"})
+    public void do_JNE_IMM(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (Long.compareUnsigned(regs[destReg], Integer.toUnsignedLong(imm)) != 0) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JEQ_REG"})
+    public void do_JEQ_REG(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) == 0) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JGE_REG"})
+    public void do_JGE_REG(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) >= 0) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JGT_REG"})
+    public void do_JGT_REG(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) > 0) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JGT_IMM"})
+    public void do_JGT_IMM(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (Long.compareUnsigned(regs[destReg], Integer.toUnsignedLong(imm)) > 0) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JSGT_REG"})
+    public void do_JSGT_REG(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (regs[destReg] > regs[srcReg]) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JSGT_IMM"})
+    public void do_JSGT_IMM(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (regs[destReg] > imm) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JSGE_REG"})
+    public void do_JSGE_REG(VirtualFrame frame) throws FrameSlotTypeException {
+    	Long[] regs = (Long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	if (regs[destReg] >= regs[srcReg]) {
+    		frame.setInt(pcSlot, pc + offset);
+    	}
+    }
+    
+    @Specialization(guards = {"opcode == EBPF_OP_JA"})
+    public void do_JA(VirtualFrame frame) throws FrameSlotTypeException {
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	int pc = frame.getInt(pcSlot);
+    	frame.setInt(pcSlot, pc + offset);
+    }
+    
+}
+
+
+
+*/

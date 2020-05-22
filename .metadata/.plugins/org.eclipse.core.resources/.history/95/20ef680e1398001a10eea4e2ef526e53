@@ -1,0 +1,71 @@
+package BPF.Graal;
+
+import static BPF.Graal.FrameInfo.*;
+
+import java.util.List;
+import java.util.Set;
+
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.RootNode;
+
+//Primarily drawn from SequenceNode in Stefan Marr's Graal & Truffle blogpost
+
+public class Program extends RootNode {
+	
+	private final int STACK_SIZE = 512;
+	
+    @Children private final InstructionNode[] insts;
+    private final byte[] prog;
+
+    public Program(InstructionNode[] insts, byte[] prog){
+        this.insts = insts;
+        this.prog = prog;
+    }
+    
+    public void initFrame(VirtualFrame frame) {
+    	//Preparing frame slots for use
+    	pcSlot.setKind(FrameSlotKind.Int);
+    	List<? extends FrameSlot> list = desc.getSlots();
+    	for (i : list) {
+    		System.out.println(i);
+    	}
+    	regsSlot.setKind(FrameSlotKind.Object);
+    	memSlot.setKind(FrameSlotKind.Object);
+    	//Initializing frame elements for each slot
+    	long[] registers = new long[11];
+    	registers[10] = 16384*8;
+    	Memory memory = new Memory();
+    	try {
+    		memory.addRegion("Program", new MemoryRegion(0, prog));
+    		memory.addRegion("Stack", new MemoryRegion((16384*8-STACK_SIZE), new byte[STACK_SIZE]));
+    	}
+    	catch(Exception e) {
+    		throw new NotYetImplemented();
+    	}
+    	frame.setInt(pcSlot, 0);
+    	frame.setObject(regsSlot, registers);
+    	frame.setObject(memSlot, memory);
+    }
+    
+    //Executes program by running through each statement in sequence
+    @ExplodeLoop
+    public Object execute(VirtualFrame frame){
+    	initFrame(frame);
+    	//Executing each instruction node
+    	int pc = 0;
+        while(insts[pc].opcode != EBPFOpcodes.EBPF_OP_EXIT) {
+            try {
+            	insts[pc].execute(frame);
+				pc = frame.getInt(pcSlot);
+			} catch (FrameSlotTypeException e) {
+				e.printStackTrace();
+			}
+        }
+        return 0;
+    }
+}

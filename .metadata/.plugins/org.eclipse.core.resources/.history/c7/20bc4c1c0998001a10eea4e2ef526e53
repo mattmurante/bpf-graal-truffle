@@ -1,0 +1,44 @@
+package BPF.Graal;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+
+//Class to execute virtual machine on program file
+
+public class VM {
+	
+    public static void main(String args[]) {
+    	if (args.length != 1) {
+    		return;
+    	}
+    	File infile = new File(args[0]);
+    	FileInputStream fis = null;
+    	byte[] program = new byte[(int) infile.length()];
+    	try {
+			fis = new FileInputStream(infile);
+			fis.read(program);
+			TruffleTreeGenerator ttg = new TruffleTreeGenerator();
+			Program progTree = ttg.genTree(program);
+			DirectCallNode call = Truffle.getRuntime().createDirectCallNode(progTree.getCallTarget());
+			call.call(frame, );
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	finally {
+    		try {
+    			if (fis != null) {
+    				fis.close();
+    			}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	}
+    }
+}

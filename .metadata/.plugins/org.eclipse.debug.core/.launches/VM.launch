@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/BPF Graal/src/main/java/BPF/Graal/VM.java"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="1"/>
+    </listAttribute>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_EXCLUDE_TEST_CODE" value="true"/>
+    <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="BPF.Graal.VM"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="BPF Graal"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-rpython-master/samples/euler49.bpf"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="BPF Graal"/>
+</launchConfiguration>

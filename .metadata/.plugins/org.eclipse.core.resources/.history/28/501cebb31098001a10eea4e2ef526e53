@@ -1,0 +1,36 @@
+package BPF.Graal;
+
+import java.nio.ByteBuffer;
+
+public class TruffleTreeGenerator {
+	
+	//Generates Truffle tree of statement nodes for each line in BPF program
+	
+    public Program genTree(byte[] program) {
+    	//Creating statement nodes for each instruction, outputting Truffle tree with program root node
+    	int count = 0;
+    	ByteBuffer bb = ByteBuffer.wrap(program);
+    	InstructionNode[] insts = new InstructionNode[program.length/8];
+   		while (count*8 <= program.length) {
+    		try {
+    			byte opcode = bb.get();
+    			byte regs = bb.get();
+    			short offset = bb.getShort();
+    			int imm = bb.getInt();
+	    		insts[count] = new InstructionNode(opcode, regs, offset, imm);
+	    		count++;
+    			//If loading double word, make helper instruction node
+    			if (opcode == EBPFOpcodes.EBPF_OP_LDDW && count*8 <= program.length) {
+    				bb.getInt();
+    				int imm2 = bb.getInt();
+    				insts[count] = new DoubleWordHelperNode(opcode, regs, offset, imm2);
+    				count++;
+    			}
+    		}
+    		catch (Exception e) {
+   				System.err.println("Error that caused improper parsing of BPF program: " + e);
+   			}
+    	}
+    	return new Program(insts, program);
+    }
+}

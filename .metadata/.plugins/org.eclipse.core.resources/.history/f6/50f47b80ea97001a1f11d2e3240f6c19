@@ -1,0 +1,13 @@
+package BPF.Graal;
+
+//Helper instruction node to 
+
+public class DoubleWordHelperNode extends InstructionNode {
+
+	public DoubleWordHelperNode(char opcode, char regs, short offset, int imm) {
+		super(opcode, regs, offset, imm);
+	}
+	
+	
+	
+}

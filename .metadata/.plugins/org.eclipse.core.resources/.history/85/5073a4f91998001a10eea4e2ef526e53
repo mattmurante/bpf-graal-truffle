@@ -1,0 +1,5 @@
+package BPF.Graal;
+
+public class SpecializationTest {
+
+}

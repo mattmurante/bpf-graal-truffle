@@ -1,0 +1,12 @@
+package BPF.Graal;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+
+//Providing nodes access to frame elements
+
+public final class FrameInfo {
+	public static final FrameDescriptor desc = new FrameDescriptor();
+	public static final FrameSlot regsSlot = desc.addFrameSlot("regs");
+	public static final FrameSlot memSlot = desc.addFrameSlot("mem");
+}

@@ -1,0 +1,525 @@
+package BPF.Graal;
+
+import static BPF.Graal.EBPFOpcodes.*;
+
+import java.nio.ByteOrder;
+
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+
+//Executes different instructions based on what opcode is given
+
+class InstructionNode extends Node {
+	
+	protected final byte opcode;
+	protected final byte srcReg;
+	protected final byte destReg;
+	protected final short offset;
+	protected final int imm;
+	
+    public InstructionNode(byte opcode, byte regs, short offset, int imm){
+        this.opcode = opcode;
+        this.srcReg = (byte) ((regs >>> 4) & 0x0f);
+        this.destReg = (byte) (regs & 0x0f);
+        this.offset = offset;
+        this.imm = imm;
+    }
+    
+    //Read and write methods from RPython implementation
+    
+    //Convenience method to write to memory
+    public void write(Memory memory, long addr, int size, long value) {
+    	//Load the memory region
+    	MemoryRegion r = null;
+    	try {
+			r = memory.getRegion(addr);
+		} catch (Exception e) {
+			System.err.println("No memory region corresponding to this address");
+		}
+    	//Ensure data size is valid
+    	if (!(size == 1 || size == 2 || size == 4 || size == 8)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Check alignment
+    	assert (addr & (size-1)) == 0 : "Value to write not aligned to address";
+    	//Write to memory
+    	for (long index = (addr-r.getStart()); index < (addr-r.getStart()) + size; index++) {
+    		r.getRegion()[(int) index] = (byte) (value & 0xff);
+    		value >>>= 8;
+    	}
+    }
+    
+    //Convenience method to read from memory
+    public long read(Memory memory, long addr, int size) {
+    	//Load the memory region
+    	MemoryRegion r = null;
+    	try {
+			r = memory.getRegion(addr);
+		} catch (Exception e) {
+			System.err.println("No memory region corresponding to this address");
+		}
+    	//Ensure data size is valid
+    	if (!(size == 1 || size == 2 || size == 4 || size == 8)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Check alignment
+    	assert (addr & (size-1)) == 0 : "Value to write not aligned to address";
+    	//Read from memory
+    	long value = 0;
+    	int counter = 0;
+    	for (long index = (addr-r.getStart()); index < (addr-r.getStart()) + size; index++) {
+    		value |= Byte.toUnsignedLong(r.getRegion()[(int) index]) << counter;
+    		counter += 8;
+    	}
+    	return value;
+    }
+    
+    //Convenience method to swap order of bytes in a register
+    public long byteSwap(long regVal) {
+    	//Ensure byte swap is for a valid size
+		if (!(imm == 16 || imm == 32 || imm == 64)) {
+    		throw new NotYetImplemented();
+    	}
+    	//Swap bytes
+    	long value = 0;
+    	for (int i = imm - 8; i >= 0; i-=8) {
+    		value |= (0xffL & regVal) << i;
+    		regVal >>>= 8;
+    	}
+    	return value;
+    }
+    
+    public Object execute(VirtualFrame frame) throws FrameSlotTypeException {
+    	//Loading stored program information from frame
+    	FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+    	FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+    	FrameSlot memSlot = frame.getFrameDescriptor().findFrameSlot("mem");
+    	int pc = frame.getInt(pcSlot) + 1;
+    	long[] regs = (long[]) frame.getValue(regsSlot);
+    	Memory memory = (Memory) frame.getValue(memSlot);
+    	long lowerBits = 0xffffffffL;
+    	
+    	//Program state info dump
+    	/*System.out.println(pc-1);
+    	for (int i = 0; i < 11; i++) {
+    		System.out.print(String.format("r%d = %x, ", i, regs[i]));
+    	}
+    	System.out.println();
+    	System.out.println(String.format("Op = %x, Src = %d, Dst = %d, Off = %d, Imm = %d", opcode, srcReg, destReg, offset, imm));
+    	System.out.println();*/
+    	
+    	//Specializations for instruction nodes based on opcode
+    	switch(opcode) {
+    		//TODO: How to handle fn calls?
+    		case EBPF_OP_STXDW:
+    			write(memory, regs[destReg] + offset, 8, regs[srcReg]);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STXW:
+    			write(memory, regs[destReg] + offset, 4, regs[srcReg]);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STXH:
+    			write(memory, regs[destReg] + offset, 2, regs[srcReg]);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STXB:
+    			write(memory, regs[destReg] + offset, 1, regs[srcReg]);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STDW:
+    			write(memory, regs[destReg] + offset, 8, imm);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STW:
+    			write(memory, regs[destReg] + offset, 4, imm);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STH:
+    			write(memory, regs[destReg] + offset, 2, imm);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_STB:
+    			write(memory, regs[destReg] + offset, 1, imm);
+    			frame.setObject(memSlot, memory);
+    	    	break;
+    		case EBPF_OP_LDXDW:
+    			regs[destReg] = read(memory, regs[srcReg] + offset, 8);
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LDXW:
+    			regs[destReg] = read(memory, regs[srcReg] + offset, 4);
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LDXH:
+    			regs[destReg] = read(memory, regs[srcReg] + offset, 2);
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LDXB:
+    			regs[destReg] = read(memory, regs[srcReg] + offset, 1);
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LDDW:
+    			regs[destReg] = Integer.toUnsignedLong(imm);
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LE:
+    			if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) break;
+    	    	regs[destReg] = byteSwap(regs[destReg]);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_BE:
+    			if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) break;
+    	    	regs[destReg] = byteSwap(regs[destReg]);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV_IMM:
+    			regs[destReg] = imm;
+    			regs[destReg] &= lowerBits;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV64_IMM:
+    			regs[destReg] = imm;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV_REG:
+    			regs[destReg] = regs[srcReg];
+    			regs[destReg] &= lowerBits;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_MOV64_REG:
+    	    	regs[destReg] = regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LSH_IMM:
+    			regs[destReg] <<= imm;
+    			regs[destReg] &= lowerBits;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LSH64_IMM:
+    	    	regs[destReg] <<= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LSH_REG:
+    			regs[destReg] <<= regs[srcReg];
+    			regs[destReg] &= lowerBits;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_LSH64_REG:
+    			regs[destReg] <<= regs[srcReg];
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_RSH_IMM:
+    			regs[destReg] >>>= imm;
+    			regs[destReg] &= lowerBits;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_RSH64_IMM:
+    			regs[destReg] >>>= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_RSH_REG:
+    			regs[destReg] >>>= regs[srcReg];
+    			regs[destReg] &= lowerBits;
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_RSH64_REG:
+    			regs[destReg] >>>= regs[srcReg];
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_ARSH_IMM:
+    	    	regs[destReg] >>= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_ARSH64_IMM:
+    	    	regs[destReg] >>= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_ARSH_REG:
+    			regs[destReg] >>= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    		case EBPF_OP_ARSH64_REG:
+    			regs[destReg] >>= regs[srcReg];
+    			frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MUL_REG:
+    	    	regs[destReg] *= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MUL64_REG:
+    	    	regs[destReg] *= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MUL_IMM:
+    	    	regs[destReg] *= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MUL64_IMM:
+    	    	regs[destReg] *= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_NEG:
+    	    	regs[destReg] *= -1;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_NEG64:
+    	    	regs[destReg] *= -1;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_OR_IMM:
+    	    	regs[destReg] |= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_OR64_IMM:
+    	    	regs[destReg] |= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_OR_REG:
+    	    	regs[destReg] |= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_OR64_REG:
+    	    	regs[destReg] |= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_AND_IMM:
+    	    	regs[destReg] &= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_AND64_IMM:
+    	    	regs[destReg] &= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_AND_REG:
+    	    	regs[destReg] &= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_AND64_REG:
+    	    	regs[destReg] &= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_XOR_IMM:
+    	    	regs[destReg] ^= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_XOR64_IMM:
+    	    	regs[destReg] ^= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_XOR_REG:
+    	    	regs[destReg] ^= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_XOR64_REG:
+    	    	regs[destReg] ^= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MOD_IMM:
+    	    	regs[destReg] %= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MOD64_IMM:
+    	    	regs[destReg] %= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MOD_REG:
+    	    	regs[destReg] %= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_MOD64_REG:
+    	    	regs[destReg] %= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_ADD_IMM:
+    	    	regs[destReg] += imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_ADD64_IMM:
+    	    	regs[destReg] += imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_ADD_REG:
+    	    	regs[destReg] += regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_ADD64_REG:
+    	    	regs[destReg] += regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_SUB_IMM:
+    	    	regs[destReg] -= imm;
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_SUB64_IMM:
+    	    	regs[destReg] -= imm;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_SUB_REG:
+    	    	regs[destReg] -= regs[srcReg];
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_SUB64_REG:
+    	    	regs[destReg] -= regs[srcReg];
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_DIV_REG:
+    	    	regs[destReg] = Long.divideUnsigned(regs[destReg], regs[srcReg]);
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_DIV64_REG:
+    	    	regs[destReg] = Long.divideUnsigned(regs[destReg], regs[srcReg]);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_DIV_IMM:
+    	    	regs[destReg] = Long.divideUnsigned(regs[destReg], imm);
+    	    	regs[destReg] &= lowerBits;
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_DIV64_IMM:
+    	    	regs[destReg] = Long.divideUnsigned(regs[destReg], imm);
+    	    	frame.setObject(regsSlot, regs);
+    	    	break;
+    	    case EBPF_OP_JEQ_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], imm) == 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JNE_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], imm) != 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JNE_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) != 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JEQ_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) == 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JGE_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], imm) >= 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JGE_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) >= 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JGT_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) > 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JGT_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], imm) > 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JSGT_REG:
+    	    	if (regs[destReg] > regs[srcReg]) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JSGT_IMM:
+    	    	if (regs[destReg] > imm) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JSGE_IMM:
+    	    	if (regs[destReg] >= imm) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JSGE_REG:
+    	       	if (regs[destReg] >= regs[srcReg]) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JLT_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], imm) < 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JLT_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) < 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JLE_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg], imm) <= 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JLE_REG:
+    	    	if (Long.compareUnsigned(regs[destReg], regs[srcReg]) <= 0) {
+    	    		pc += offset;
+    	    	}
+    	    	break;
+    	    case EBPF_OP_JSLT_IMM:
+    	    	if (regs[destReg] < imm) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JSLT_REG:
+    	    	if (regs[destReg] < regs[srcReg]) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JSLE_IMM:
+    	    	if (regs[destReg] <= imm) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JSLE_REG:
+    	    	if (regs[destReg] <= regs[srcReg]) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JSET_REG:
+    	    	if (Long.compareUnsigned(regs[destReg] & regs[srcReg], 0) > 0) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JSET_IMM:
+    	    	if (Long.compareUnsigned(regs[destReg] & imm, 0) > 0) {
+    	    		pc += offset;
+    	    	}
+    	       	break;
+    	    case EBPF_OP_JA:
+    	    	pc += offset;
+    	    	break;
+    	    //Throws not yet implemented if an opcode has no associated method
+    		default:
+    			System.out.printf("Opcode " + String.format("0x%02x", opcode) + " not supported\n");
+    			throw new NotYetImplemented();
+    	}
+		frame.setInt(pcSlot, pc);
+    	return 0;
+    }
+    
+}

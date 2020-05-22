@@ -1,0 +1,27 @@
+package BPF.Graal;
+
+import java.util.HashMap;
+
+//Implementation of memory_map from RPython VM
+
+public class Memory {
+	
+	private HashMap<String, MemoryRegion> mem = new HashMap<String, MemoryRegion>();
+	
+	public void addRegion(String name, MemoryRegion memRegion) {
+		for (MemoryRegion m : mem.values()) {
+			if (m.overlaps(memRegion)) throw new ValueError;
+		}
+		mem.put(name, memRegion);
+	}
+	
+	public MemoryRegion getRegion(long address) {
+		for (MemoryRegion m : mem.values()) {
+			if (m.containsAddr(address)){
+				return m;
+			}
+		}
+		throw new Index
+	}
+	
+}

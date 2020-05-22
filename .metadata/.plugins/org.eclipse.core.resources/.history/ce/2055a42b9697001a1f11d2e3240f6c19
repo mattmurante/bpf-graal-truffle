@@ -1,0 +1,9 @@
+package BPF.Graal;
+
+//Inspired from MemoryRegion class in RPython implementation
+
+public class MemoryRegion {
+	
+	
+	
+}

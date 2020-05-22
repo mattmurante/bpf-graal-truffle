@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.buildship.ui.wizard.project.creation">
+		<item key="project_location" value="/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-truffle/BPF Graal"/>
+		<item key="use_default_location" value="true"/>
+	</section>
+</section>

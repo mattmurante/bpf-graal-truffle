@@ -1,0 +1,7 @@
+package BPF.Graal;
+
+//Providing nodes access to frame elements
+
+public final class FrameInfo {
+
+}

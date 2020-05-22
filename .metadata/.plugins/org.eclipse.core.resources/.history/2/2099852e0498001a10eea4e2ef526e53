@@ -1,0 +1,25 @@
+package BPF.Graal;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+//Class to execute virtual machine on program file
+
+public class VM {
+	
+    public static void main(String args[]) {
+    	if (args.length != 1) {
+    		return;
+    	}
+    	File infile = new File(args[0]);
+    	FileInputStream fis;
+    	byte[] program;
+    	try {
+			new FileInputStream(infile);
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+    }
+}

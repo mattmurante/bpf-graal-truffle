@@ -1,0 +1,64 @@
+package BPF.Graal;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.RootNode;
+
+//Primarily drawn from SequenceNode in Stefan Marr's Graal & Truffle blogpost
+
+public class Program extends RootNode {
+	
+	private final int STACK_SIZE = 512;
+	
+    @Children private final InstructionNode[] insts;
+    private final byte[] prog;
+
+    public Program(InstructionNode[] insts, byte[] prog){
+        this.insts = insts;
+        this.prog = prog;
+    }
+    
+    public void initFrame(VirtualFrame frame) {
+    	//Preparing frame slots for use
+    	FrameDescriptor desc = frame.getFrameDescriptor();
+    	FrameSlot pcSlot = desc.addFrameSlot("pc", FrameSlotKind.Int);
+    	FrameSlot regsSlot = desc.addFrameSlot("regs", FrameSlotKind.Object);
+    	FrameSlot memSlot = desc.addFrameSlot("mem", FrameSlotKind.Object);
+    	//Initializing frame elements for each slot
+    	long[] registers = new long[11];
+    	registers[10] = 16384*8;
+    	Memory memory = new Memory();
+    	try {
+    		memory.addRegion("Program", new MemoryRegion(0, prog));
+    		memory.addRegion("Stack", new MemoryRegion((16384*8-STACK_SIZE), new byte[STACK_SIZE]));
+    		memory.addRegion("Heap", new MemoryRegion(1, new byte[]));
+    	}
+    	catch(Exception e) {
+    		System.out.println("Memory regions could not be added to memory map successfully");
+    	}
+    	frame.setInt(pcSlot, 0);
+    	frame.setObject(regsSlot, registers);
+    	frame.setObject(memSlot, memory);
+    }
+    
+    //Executes program by running through each statement in sequence
+    @ExplodeLoop
+    public Object execute(VirtualFrame frame){
+    	initFrame(frame);
+    	//Executing each instruction node
+    	int pc = 0;
+        while(insts[pc].opcode != EBPFOpcodes.EBPF_OP_EXIT) {
+            try {
+            	insts[pc].execute(frame);
+				pc = frame.getInt(frame.getFrameDescriptor().findFrameSlot("pc"));
+			} catch (FrameSlotTypeException e) {
+				e.printStackTrace();
+			}
+        }
+        return 0;
+    }
+}

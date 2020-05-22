@@ -1,0 +1,32 @@
+package BPF.Graal;
+
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+
+//Helper instruction node to load double word - maybe not the most elegant solution, but works nonetheless
+
+public class DoubleWordHelperNode extends InstructionNode {
+
+	public DoubleWordHelperNode(byte opcode, byte regs, short offset, int imm) {
+		super(opcode, regs, offset, imm);
+	}
+	
+	@Override
+    public Object execute(VirtualFrame frame) throws FrameSlotTypeException {
+		if (opcode == EBPFOpcodes.EBPF_OP_LDDW) {
+			FrameSlot pcSlot = frame.getFrameDescriptor().findFrameSlot("pc");
+			FrameSlot regsSlot = frame.getFrameDescriptor().findFrameSlot("regs");
+	    	int pc = frame.getInt(pcSlot) + 1;
+	    	long[] regs = (long[]) frame.getValue(regsSlot);
+	    	regs[destReg] |= Integer.toUnsignedLong(imm) << 32;
+	    	frame.setObject(regsSlot, regs);
+	    	frame.setInt(pcSlot, pc);
+		}
+		else {
+			throw new NotYetImplemented();
+		}
+		return 0;
+    }
+	
+}

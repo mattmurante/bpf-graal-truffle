@@ -1,0 +1,15 @@
+package BPF.Graal;
+
+import java.util.HashMap;
+
+public class Memory {
+	
+	private HashMap<String, MemoryRegion> mem = new HashMap<String, MemoryRegion>();
+	
+	public void addRegion(MemoryRegion memRegion) {
+		for (MemoryRegion m : mem.values()) {
+			
+		}
+	}
+	
+}

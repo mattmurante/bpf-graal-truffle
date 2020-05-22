@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.dsl.Specialization"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.nodes.Node.Children"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.nodes.RootNode"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.nodes.ExplodeLoop"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.frame.FrameSlotKind"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.nodes.Node"/>
+    <fullyQualifiedTypeName name="BPF.Graal.TruffleTreeGenerator"/>
+    <fullyQualifiedTypeName name="BPF.Graal.EBPFOpcodes"/>
+    <fullyQualifiedTypeName name="BPF.Graal.FrameInfo"/>
+    <fullyQualifiedTypeName name="java.util.HashMap"/>
+    <fullyQualifiedTypeName name="java.nio.ByteBuffer"/>
+    <fullyQualifiedTypeName name="com.google.common.primitives.Longs"/>
+    <fullyQualifiedTypeName name="java.lang.Long"/>
+    <fullyQualifiedTypeName name="java.io.File"/>
+    <fullyQualifiedTypeName name="java.io.FileInputStream"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.Truffle"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.frame.VirtualFrame"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.frame.FrameDescriptor"/>
+    <fullyQualifiedTypeName name="com.oracle.truffle.api.frame.FrameSlot"/>
+    <fullyQualifiedTypeName name="java.nio.ByteOrder"/>
+</qualifiedTypeNameHistroy>

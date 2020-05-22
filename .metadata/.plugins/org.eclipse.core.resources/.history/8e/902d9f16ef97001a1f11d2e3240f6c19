@@ -1,0 +1,18 @@
+package BPF.Graal;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+
+//Helper instruction node to load double word - maybe not the most elegant solution, but works nonetheless
+
+public class DoubleWordHelperNode extends InstructionNode {
+
+	public DoubleWordHelperNode(char opcode, char regs, short offset, int imm) {
+		super(opcode, regs, offset, imm);
+	}
+	
+	//Should see if I can use execute method instead, or change opcode - below code is clunky at best
+	
+	@Specialization(guards = {"opcode == EBPF_OP_LDDW"})
+	public 
+	
+}

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="selection" value="frame.setObject(regsSlot, regs)"/>
+		<item key="wrap" value="true"/>
+		<item key="casesensitive" value="false"/>
+		<item key="wholeword" value="false"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
+		<list key="findhistory">
+			<item value="frame.setObject(regsSlot, regs);"/>
+			<item value="frame.setObject(regsSlot, regs)"/>
+			<item value="frame."/>
+			<item value="EBPF_OP_LE"/>
+			<item value="EBPF_OP_ARSH_IMM"/>
+			<item value="EBPF_OP_MOV_REG"/>
+			<item value="EBPF_OP_MOV_IMM"/>
+			<item value="EBPF_OP_ADD_REG"/>
+			<item value="EBPF_OP_ADD_IMM"/>
+			<item value="JAVA_HOME"/>
+			<item value="notyet"/>
+			<item value="char"/>
+			<item value="(long)"/>
+			<item value="long"/>
+			<item value="EXIT"/>
+		</list>
+		<list key="replacehistory">
+			<item value=""/>
+			<item value="byte"/>
+			<item value="char"/>
+		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="840"/>
+		<item key="DIALOG_Y_ORIGIN" value="325"/>
+		<item key="DIALOG_WIDTH" value="294"/>
+		<item key="DIALOG_HEIGHT" value="408"/>
+		<item key="DIALOG_FONT_NAME" value="1|.AppleSystemUIFont|11.0|0|COCOA|1|.AppleSystemUIFont"/>
+	</section>
+</section>

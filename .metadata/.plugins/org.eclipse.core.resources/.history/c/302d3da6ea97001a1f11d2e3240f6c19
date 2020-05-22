@@ -1,0 +1,15 @@
+package BPF.Graal;
+
+//Helper instruction node to 
+
+public class DoubleWordHelperNode extends InstructionNode {
+
+	public DoubleWordHelperNode(int imm) {
+		super(0, 0, 0, imm);
+	}
+	
+	public void execute(VirtualFrame frame) {
+		
+	}
+	
+}

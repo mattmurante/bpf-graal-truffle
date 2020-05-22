@@ -1,0 +1,17 @@
+package BPF.Graal;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+
+//Helper instruction node to load double word - maybe not the most elegant solution, but works nonetheless
+
+public class DoubleWordHelperNode extends InstructionNode {
+
+	public DoubleWordHelperNode(char opcode, char regs, short offset, int imm) {
+		super(opcode, regs, offset, imm);
+	}
+	
+	public Object execute(VirtualFrame frame) {
+		
+	}
+	
+}

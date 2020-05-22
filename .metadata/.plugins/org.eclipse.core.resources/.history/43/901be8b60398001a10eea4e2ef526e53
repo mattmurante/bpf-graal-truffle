@@ -1,0 +1,11 @@
+package BPF.Graal;
+
+public class VM {
+	
+    public static int main(String args[]) {
+    	if (args.length != 1) {
+    		return 1;
+    	}
+    	args[0]
+    }
+}

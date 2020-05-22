@@ -1,0 +1,35 @@
+package BPF.Graal;
+
+//Inspired from MemoryRegion class in RPython implementation
+
+public class MemoryRegion {
+	
+	private long start;
+	private long end;
+	private byte[] region;
+	
+	public MemoryRegion(long start, byte[] region) {
+		this.start = start;
+		this.end = start + region.length - 1;
+		this.region = region;
+	}
+	
+	public boolean overlaps(MemoryRegion memRegion) {
+		if (this.start > memRegion.end) return false;
+		if (this.end < memRegion.start) return false;
+		return true;
+	}
+	
+	public boolean containsAddr(long addr) {
+		return (addr >= this.start && addr <= this.end);
+	}
+	
+	public byte[] getRegion() {
+		return region;
+	}
+	
+	public void setRegion(byte[] region) {
+		this.region = region;
+	}
+	
+}

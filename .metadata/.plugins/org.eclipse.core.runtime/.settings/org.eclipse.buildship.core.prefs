@@ -1,0 +1,10 @@
+arguments=
+auto.sync=false
+eclipse.preferences.version=1
+gradle.build.scans=false
+gradle.distribution=GRADLE_DISTRIBUTION(WRAPPER)
+gradle.offline.mode=false
+java.home=/Library/Java/JavaVirtualMachines/graalvm-ee-java8-20.0.0/Contents/Home
+jvm.arguments=
+show.console.view=true
+show.executions.view=true

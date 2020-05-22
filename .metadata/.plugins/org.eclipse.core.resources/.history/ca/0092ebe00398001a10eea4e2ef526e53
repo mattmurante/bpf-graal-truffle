@@ -1,0 +1,13 @@
+package BPF.Graal;
+
+import java.io.File;
+
+public class VM {
+	
+    public static void main(String args[]) {
+    	if (args.length != 1) {
+    		return;
+    	}
+    	File infile = new File(args[0]);
+    }
+}
