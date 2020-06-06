@@ -16,17 +16,17 @@ public class TruffleTreeGenerator {
     	InstructionNode[] insts = new InstructionNode[program.length/8];
    		while (count*8 + 8 <= program.length) {
     		try {
-    			byte opcode = bb.get();
-    			byte regs = bb.get();
-    			short offset = bb.getShort();
-    			int imm = bb.getInt();
-	    		insts[count] = new InstructionNode(opcode, regs, offset, imm);
+    			final byte opcode = bb.get();
+    			final byte regs = bb.get();
+    			final short offset = bb.getShort();
+    			final int imm = bb.getInt();
+	    		insts[count] = InstructionNodeGen.create(new OpcodeNode(opcode), new RegisterNode((byte) ((regs >>> 4) & 0x0f)), new RegisterNode((byte) (regs & 0x0f)), new OffsetNode(offset), new ImmNode(imm));
 	    		count++;
     			//If loading double word, make helper instruction node
     			if (opcode == EBPFOpcodes.EBPF_OP_LDDW && count*8 + 8 <= program.length) {
     				bb.getInt();
-    				int imm2 = bb.getInt();
-    				insts[count] = new DoubleWordHelperNode(opcode, regs, offset, imm2);
+    				final int imm2 = bb.getInt();
+    				insts[count] = DoubleWordHelperNodeGen.create(new OpcodeNode(opcode), new RegisterNode((byte) ((regs >>> 4) & 0x0f)), new RegisterNode((byte) (regs & 0x0f)), new OffsetNode(offset), new ImmNode(imm2));
     				count++;
     			}
     		}

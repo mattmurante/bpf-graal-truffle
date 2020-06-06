@@ -7,6 +7,7 @@ import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 //Primarily drawn from SequenceNode in Stefan Marr's Graal & Truffle blogpost
 
@@ -16,9 +17,9 @@ public class Program extends RootNode {
 	
     @Children private final InstructionNode[] insts;
     private final byte[] prog;
-
-    public Program(InstructionNode[] insts, byte[] prog){
-        this.insts = insts;
+    
+	public Program(InstructionNode[] insts, byte[] prog){
+		this.insts = insts;
         this.prog = prog;
     }
     
@@ -50,12 +51,13 @@ public class Program extends RootNode {
     	initFrame(frame);
     	//Executing each instruction node
     	int pc = 0;
+    	boolean running = true;
     	long result = 0;
-        while(insts[pc].opcode != EBPFOpcodes.EBPF_OP_EXIT) {
+        while(running) {
             try {
-            	insts[pc].execute(frame);
+            	running = insts[pc].executeBoolean(frame);
 				pc = frame.getInt(frame.getFrameDescriptor().findFrameSlot("pc"));
-			} catch (FrameSlotTypeException e) {
+			} catch (UnexpectedResultException | FrameSlotTypeException e) {
 				e.printStackTrace();
 				System.exit(-1);
 			}

@@ -12,16 +12,10 @@ plugins {
     id 'java'
     id 'application'
     id 'eclipse'
+	id "com.diffplug.eclipse.apt" version "3.22.0"
 }
 
 mainClassName = 'BPF.Graal.VM'
-
-configurations {
-	annotationProcessor
-}
-compileJava {
-	options.annotationProcessorPath = configurations.annotationProcessor
-}
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -46,4 +40,5 @@ dependencies {
     compile 'com.oracle.truffle:truffle-api:0.9'
     annotationProcessor 'com.oracle.truffle:truffle-api:0.9'
 	annotationProcessor 'com.oracle.truffle:truffle-dsl-processor:0.9'
+	
 }
