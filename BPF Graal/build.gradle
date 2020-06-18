@@ -12,17 +12,44 @@ plugins {
     id 'java'
     id 'application'
     id 'eclipse'
-	id "com.diffplug.eclipse.apt" version "3.22.0"
+    id "com.diffplug.eclipse.apt" version "3.22.0"
+    id "org.mikeneck.graalvm-native-image" version "0.5.0"
 }
 
 mainClassName = 'BPF.Graal.VM'
 
+run {
+    enableAssertions = true
+    jvmArgs=["-Dtruffle.class.path.append=/Users/mattmurante/Documents/Projects/006/bpf/bpf-graal-truffle/BPF Graal/src/main/java/BPF/Graal/BPFLanguage.java"]
+}
+
+nativeImage {
+  graalVmHome = System.getProperty('java.home')
+  mainClass = 'BPF.Graal.VM'
+  executableName = 'native-bpf-vm'
+  arguments(
+      '--no-fallback',
+      '--enable-all-security-services',
+      '--initialize-at-run-time=com.example.runtime',
+      '--report-unsupported-elements-at-runtime'
+  )
+}
+
+/*tasks.withType(JavaCompile) {
+    doFirst {
+        println "Args for for $name are $options.allCompilerArgs"
+        //println "Source path for $name is $options.sourcePath"
+        //println "Annotation processing path for $name is $options.annotationProcessorPath"
+    }
+}*/
+
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
-	maven {
-		url "http://lafo.ssw.uni-linz.ac.at/nexus/content/repositories/releases/"
-	}
+    mavenCentral()
+    maven {
+    	url "https://repo1.maven.org/maven2/"
+    }
     jcenter()
 }
 
@@ -37,8 +64,13 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     
     //Truffle dependencies
-    compile 'com.oracle.truffle:truffle-api:0.9'
-    annotationProcessor 'com.oracle.truffle:truffle-api:0.9'
-	annotationProcessor 'com.oracle.truffle:truffle-dsl-processor:0.9'
+    compile 'org.graalvm.truffle:truffle-api:20.1.0'
+    compile 'org.graalvm.truffle:truffle-dsl-processor:20.1.0'
+    annotationProcessor 'org.graalvm.truffle:truffle-api:20.1.0'
+    annotationProcessor 'org.graalvm.truffle:truffle-dsl-processor:20.1.0'
+	compile 'org.graalvm.truffle:truffle-tck:20.1.0'
+	compile 'org.graalvm.sdk:graal-sdk:20.1.0'
+	
+	implementation 'org.slf4j:slf4j-simple:1.7.28'
 	
 }

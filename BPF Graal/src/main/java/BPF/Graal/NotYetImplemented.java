@@ -2,4 +2,5 @@ package BPF.Graal;
 
 //Debugger class
 
-public class NotYetImplemented extends RuntimeException{}
+public class NotYetImplemented extends RuntimeException {
+}

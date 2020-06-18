@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.oracle.truffle/truffle-dsl-processor/0.9/710607f9321bbe2e911dc07179dfb4bcb08a8d6b/truffle-dsl-processor-0.9.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.oracle.truffle/truffle-api/0.9/e993a0ff406535fa56a8c247a90077c1a0d590b6/truffle-api-0.9.jar" />
+        </processorPath>
+        <module name="BPF_Graal.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="1.8" />
+  </component>
+</project>

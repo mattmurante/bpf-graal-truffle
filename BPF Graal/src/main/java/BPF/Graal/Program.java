@@ -6,66 +6,69 @@ import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 //Primarily drawn from SequenceNode in Stefan Marr's Graal & Truffle blogpost
 
+@NodeInfo(language = "BPF", description = "The root node for BPF programs")
 public class Program extends RootNode {
-	
+
 	private final int STACK_SIZE = 512;
+
+	@Children
+	private final InstructionNode[] insts;
+	private final byte[] prog;
 	
-    @Children private final InstructionNode[] insts;
-    private final byte[] prog;
-    
-	public Program(InstructionNode[] insts, byte[] prog){
+	public Program(BPFLanguage language, InstructionNode[] insts, byte[] prog) {
+		super(language);
 		this.insts = insts;
-        this.prog = prog;
-    }
-    
-    public void initFrame(VirtualFrame frame) {
-    	//Preparing frame slots for use
-    	FrameDescriptor desc = frame.getFrameDescriptor();
-    	FrameSlot pcSlot = desc.addFrameSlot("pc", FrameSlotKind.Int);
-    	FrameSlot regsSlot = desc.addFrameSlot("regs", FrameSlotKind.Object);
-    	FrameSlot memSlot = desc.addFrameSlot("mem", FrameSlotKind.Object);
-    	//Initializing frame elements for each slot
-    	long[] registers = new long[11];
-    	registers[10] = 16384*8;
-    	Memory memory = new Memory();
-    	try {
-    		memory.addRegion("Program", new MemoryRegion(0, prog));
-    		memory.addRegion("Stack", new MemoryRegion((16384*8-STACK_SIZE), new byte[STACK_SIZE]));
-    	}
-    	catch(Exception e) {
-    		System.out.println("Memory regions could not be added to memory map successfully");
-    	}
-    	frame.setInt(pcSlot, 0);
-    	frame.setObject(regsSlot, registers);
-    	frame.setObject(memSlot, memory);
-    }
-    
-    //Executes program by running through each statement in sequence
-    @ExplodeLoop
-    public Object execute(VirtualFrame frame){
-    	initFrame(frame);
-    	//Executing each instruction node
-    	int pc = 0;
-    	boolean running = true;
-    	long result = 0;
-        while(running) {
-            try {
-            	running = insts[pc].executeBoolean(frame);
+		this.prog = prog;
+	}
+
+	public void initFrame(VirtualFrame frame) {
+		// Preparing frame slots for use
+		FrameDescriptor desc = frame.getFrameDescriptor();
+		FrameSlot pcSlot = desc.addFrameSlot("pc", FrameSlotKind.Int);
+		FrameSlot regsSlot = desc.addFrameSlot("regs", FrameSlotKind.Object);
+		FrameSlot memSlot = desc.addFrameSlot("mem", FrameSlotKind.Object);
+		// Initializing frame elements for each slot
+		long[] registers = new long[11];
+		registers[10] = 16384 * 8;
+		Memory memory = new Memory();
+		try {
+			memory.addRegion("Program", new MemoryRegion(0, prog));
+			memory.addRegion("Stack", new MemoryRegion((16384 * 8 - STACK_SIZE), new byte[STACK_SIZE]));
+		} catch (Exception e) {
+			System.out.println("Memory regions could not be added to memory map successfully");
+		}
+		frame.setInt(pcSlot, 0);
+		frame.setObject(regsSlot, registers);
+		frame.setObject(memSlot, memory);
+	}
+
+	// Executes program by running through each statement in sequence
+	@ExplodeLoop
+	public Object execute(VirtualFrame frame) {
+		initFrame(frame);
+		// Executing each instruction node
+		int pc = 0;
+		boolean running = true;
+		long result = 0;
+		while (running) {
+			try {
+				running = insts[pc].executeBoolean(frame);
 				pc = frame.getInt(frame.getFrameDescriptor().findFrameSlot("pc"));
 			} catch (UnexpectedResultException | FrameSlotTypeException e) {
 				e.printStackTrace();
 				System.exit(-1);
 			}
-        }
-        //Output register 0's contents as result
+		}
+		// Output register 0's contents as result
 		long[] regs = (long[]) frame.getValue(frame.getFrameDescriptor().findFrameSlot("regs"));
 		result = regs[0];
-        System.out.println(result);
-        return result;
-    }
+		System.out.println(result);
+		return result;
+	}
 }

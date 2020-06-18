@@ -1,7 +1,5 @@
-#
-#Fri Jun 05 23:01:43 EDT 2020
+eclipse.preferences.version=1
 org.eclipse.jdt.apt.aptEnabled=true
 org.eclipse.jdt.apt.genSrcDir=.apt_generated
-eclipse.preferences.version=1
 org.eclipse.jdt.apt.genTestSrcDir=.apt_generated_tests
 org.eclipse.jdt.apt.reconcileEnabled=true
