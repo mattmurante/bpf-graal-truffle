@@ -1,0 +1,22 @@
+#surefire
+#Wed Jun 10 03:52:57 EDT 2020
+testClassesDirectory=/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-truffle/bpflanguage-master/launcher/target/test-classes
+forkMode=once
+classPathUrl.2=/Users/mattmurante/.m2/repository/org/graalvm/sdk/graal-sdk/20.1.0/graal-sdk-20.1.0.jar
+useManifestOnlyJar=true
+classPathUrl.1=/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-truffle/bpflanguage-master/launcher/target/classes
+classPathUrl.0=/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-truffle/bpflanguage-master/launcher/target/test-classes
+reportsDirectory=/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-truffle/bpflanguage-master/launcher/target/surefire-reports
+providerConfiguration=org.apache.maven.surefire.junit.JUnit3Provider
+testSuiteDefinitionTestSourceDirectory=/Users/mattmurante/Documents/Projects/006/graal-ws/bpf_graal/bpf-truffle/bpflanguage-master/launcher/src/test/java
+surefireClassPathUrl.1=/Users/mattmurante/.m2/repository/org/apache/maven/surefire/surefire-api/2.9/surefire-api-2.9.jar
+surefireClassPathUrl.0=/Users/mattmurante/.m2/repository/org/apache/maven/surefire/surefire-junit3/2.9/surefire-junit3-2.9.jar
+runOrder=filesystem
+useSystemClassLoader=true
+excludes0=**/*$*
+isTrimStackTrace=true
+enableAssertions=true
+failIfNoTests=false
+includes1=**/*Test.java
+includes0=**/*TestSuite.java
+childDelegation=false
