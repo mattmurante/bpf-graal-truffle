@@ -7,71 +7,68 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.bpf.nodes.*;
+import com.oracle.truffle.bpf.nodes.InstructionNode;
+import com.oracle.truffle.bpf.nodes.ProgramNode;
 import com.oracle.truffle.bpf.nodes.util.EBPFOpcodes;
 
 public class BPFParser {
-
-	// Parser that generates tree of instruction nodes for each line in BPF program
-
+	
+	//Parser function that generates tree of instruction nodes for each line in BPF program
 	public static ProgramNode parse(BPFLanguage language, Source source) {
-		// Creating statement nodes for each instruction, outputting tree with
-		// program root node
 		byte[] program = source.getBytes().toByteArray();
 		int count = 0;
 		ByteBuffer bb = ByteBuffer.wrap(program);
-		// Preparing frame slots for use
+		//Preparing frame slots for use
 		FrameDescriptor desc = new FrameDescriptor();
 		FrameSlot pcSlot = desc.findOrAddFrameSlot("pc", FrameSlotKind.Int);
 		FrameSlot regsSlot = desc.findOrAddFrameSlot("regs", FrameSlotKind.Object);
 		FrameSlot memSlot = desc.findOrAddFrameSlot("mem", FrameSlotKind.Object);
-		// May need to change byte order depending on system - i.e. change to
-		// ByteOrder.nativeOrder() assuming bpf program is generated on local machine
+		/* May need to change byte order depending on system - i.e. change to
+		 * ByteOrder.nativeOrder() assuming bpf program is generated on local machine
+		*/
 		bb.order(ByteOrder.LITTLE_ENDIAN);
-		CommitStateNode[] insts = new CommitStateNode[program.length/8];
-		while (count * 8 + 8 <= program.length) {
+		InstructionNode[] insts = new InstructionNode[program.length/8];
+		BPFNodeFactory factory = new BPFNodeFactory(pcSlot, regsSlot, memSlot);
+		while (8 + (count*8) <= program.length) {
 			try {
 				final byte opcode = bb.get();
 				final byte regs = bb.get();
+				final byte srcReg = (byte) ((regs >>> 4) & 0x0f);
+				final byte destReg = (byte) (regs & 0x0f);
 				final short offset = bb.getShort();
 				final int imm = bb.getInt();
 				//Determine what kind of instruction it is
 				final byte instType = (byte) ((opcode & 0x0f) % 0x08);
+				InstructionNode currentInst;
+				//Create jump instruction
 				if (instType == EBPFOpcodes.EBPF_CLS_JMP) {
-					insts[count] = CommitStateNodeGen.create(pcSlot, regsSlot, memSlot,
-							JumpInstructionNodeGen.create(opcode,
-							(byte) ((regs >>> 4) & 0x0f), (byte) (regs & 0x0f),
-							offset, imm));
+					currentInst = factory.jumpInst(opcode, srcReg, destReg, offset, imm);
 				}
+				//Create alu instruction
 				else if (instType == EBPFOpcodes.EBPF_CLS_ALU) {
-					insts[count] = CommitStateNodeGen.create(pcSlot, regsSlot, memSlot,
-							ALUInstructionNodeGen.create(opcode,
-							(byte) ((regs >>> 4) & 0x0f), (byte) (regs & 0x0f),
-							offset, imm));
+					currentInst = factory.aluInst(opcode, srcReg, destReg, offset, imm);
 				}
+				//Create alu64 instruction
 				else if (instType == EBPFOpcodes.EBPF_CLS_ALU64) {
-					insts[count] = CommitStateNodeGen.create(pcSlot, regsSlot, memSlot,
-							ALU64InstructionNodeGen.create(opcode,
-							(byte) ((regs >>> 4) & 0x0f), (byte) (regs & 0x0f),
-							offset, imm));
+					currentInst = factory.alu64Inst(opcode, srcReg, destReg, offset, imm);
 				}
+				//Create memory instruction
 				else {
-					insts[count] = CommitStateNodeGen.create(pcSlot, regsSlot, memSlot,
-							MemInstructionNodeGen.create(opcode,
-							(byte) ((regs >>> 4) & 0x0f), (byte) (regs & 0x0f),
-							offset, imm));
+					currentInst = factory.memInst(opcode, srcReg, destReg, offset, imm);
+					//In the case that opcode is LDDW, begin second half of the 2-instruction operation
+					if (opcode == EBPFOpcodes.EBPF_OP_LDDW) {
+						if (count * 8 + 8 > program.length) {
+							throw new Exception("Unexpected end of Program");
+						}
+						insts[count] = currentInst;
+						count++;
+						bb.getInt(); //Ignores the first 32 bits of instruction
+						final int imm2 = bb.getInt();
+						currentInst = factory.lddwInst2(opcode, srcReg, destReg, offset, imm2);
+					}
 				}
+				insts[count] = currentInst;
 				count++;
-				// If loading double word, make helper instruction node
-				if (opcode == EBPFOpcodes.EBPF_OP_LDDW && count * 8 + 8 <= program.length) {
-					bb.getInt();
-					final int imm2 = bb.getInt();
-					insts[count] = CommitStateNodeGen.create(pcSlot, regsSlot, memSlot,
-							DoubleWordHelperNodeGen.create(opcode,
-							(byte) ((regs >>> 4) & 0x0f), (byte) (regs & 0x0f),
-							offset, imm2));
-					count++;
-				}
 			} catch (Exception e) {
 				System.err.println("Error that caused improper parsing of BPF program: " + e);
 				e.printStackTrace();
@@ -80,4 +77,5 @@ public class BPFParser {
 		}
 		return new ProgramNode(language, desc, pcSlot, regsSlot, memSlot, insts, program);
 	}
+	
 }

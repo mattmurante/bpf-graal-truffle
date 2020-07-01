@@ -19,14 +19,13 @@ public class ProgramNode extends RootNode {
 	
 	private final int STACK_SIZE = 512;
 	
-	@Children
-	private final CommitStateNode[] insts;
+	@Children private final InstructionNode[] insts;
 	private final FrameSlot pcSlot;
 	private final FrameSlot regsSlot;
 	private final FrameSlot memSlot;
 	private final byte[] program;
 	
-	public ProgramNode(BPFLanguage language, FrameDescriptor desc, FrameSlot pcSlot, FrameSlot regsSlot, FrameSlot memSlot, CommitStateNode[] insts, byte[] program) {
+	public ProgramNode(BPFLanguage language, FrameDescriptor desc, FrameSlot pcSlot, FrameSlot regsSlot, FrameSlot memSlot, InstructionNode[] insts, byte[] program) {
 		super(language, desc);
 		this.insts = insts;
 		this.program = program;

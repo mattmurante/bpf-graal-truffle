@@ -3,9 +3,7 @@ package com.oracle.truffle.bpf.nodes.util;
 
 import com.oracle.truffle.api.dsl.GeneratedBy;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.oracle.truffle.bpf.nodes.util.JumpLambda;
-import com.oracle.truffle.bpf.nodes.util.MemLambda;
-import com.oracle.truffle.bpf.nodes.util.RegLambda;
+import com.oracle.truffle.bpf.nodes.util.Memory;
 import com.oracle.truffle.bpf.nodes.util.Types;
 
 @GeneratedBy(Types.class)
@@ -32,50 +30,50 @@ public final class TypesGen extends Types {
         throw new UnexpectedResultException(value);
     }
 
-    public static boolean isJumpLambda(Object value) {
-        return value instanceof JumpLambda;
+    public static boolean isInteger(Object value) {
+        return value instanceof Integer;
     }
 
-    public static JumpLambda asJumpLambda(Object value) {
-        assert value instanceof JumpLambda : "TypesGen.asJumpLambda: JumpLambda expected";
-        return (JumpLambda) value;
+    public static int asInteger(Object value) {
+        assert value instanceof Integer : "TypesGen.asInteger: int expected";
+        return (int) value;
     }
 
-    public static JumpLambda expectJumpLambda(Object value) throws UnexpectedResultException {
-        if (value instanceof JumpLambda) {
-            return (JumpLambda) value;
+    public static int expectInteger(Object value) throws UnexpectedResultException {
+        if (value instanceof Integer) {
+            return (int) value;
         }
         throw new UnexpectedResultException(value);
     }
 
-    public static boolean isRegLambda(Object value) {
-        return value instanceof RegLambda;
+    public static boolean isLongArray(Object value) {
+        return value instanceof long[];
     }
 
-    public static RegLambda asRegLambda(Object value) {
-        assert value instanceof RegLambda : "TypesGen.asRegLambda: RegLambda expected";
-        return (RegLambda) value;
+    public static long[] asLongArray(Object value) {
+        assert value instanceof long[] : "TypesGen.asLongArray: long[] expected";
+        return (long[]) value;
     }
 
-    public static RegLambda expectRegLambda(Object value) throws UnexpectedResultException {
-        if (value instanceof RegLambda) {
-            return (RegLambda) value;
+    public static long[] expectLongArray(Object value) throws UnexpectedResultException {
+        if (value instanceof long[]) {
+            return (long[]) value;
         }
         throw new UnexpectedResultException(value);
     }
 
-    public static boolean isMemLambda(Object value) {
-        return value instanceof MemLambda;
+    public static boolean isMemory(Object value) {
+        return value instanceof Memory;
     }
 
-    public static MemLambda asMemLambda(Object value) {
-        assert value instanceof MemLambda : "TypesGen.asMemLambda: MemLambda expected";
-        return (MemLambda) value;
+    public static Memory asMemory(Object value) {
+        assert value instanceof Memory : "TypesGen.asMemory: Memory expected";
+        return (Memory) value;
     }
 
-    public static MemLambda expectMemLambda(Object value) throws UnexpectedResultException {
-        if (value instanceof MemLambda) {
-            return (MemLambda) value;
+    public static Memory expectMemory(Object value) throws UnexpectedResultException {
+        if (value instanceof Memory) {
+            return (Memory) value;
         }
         throw new UnexpectedResultException(value);
     }

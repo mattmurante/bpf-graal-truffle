@@ -4,9 +4,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.oracle.truffle.bpf.nodes.util.JumpLambda;
-import com.oracle.truffle.bpf.nodes.util.MemLambda;
-import com.oracle.truffle.bpf.nodes.util.RegLambda;
+import com.oracle.truffle.bpf.nodes.util.Memory;
 import com.oracle.truffle.bpf.nodes.util.TypesGen;
 
 @NodeInfo(language = "BPF", description = "The abstract base node for all BPF nodes")
@@ -18,16 +16,16 @@ public abstract class BaseNode extends Node {
 		return TypesGen.expectBoolean(executeGeneric(frame));
 	}
 	
-	public JumpLambda executeJumpLambda(VirtualFrame frame) throws UnexpectedResultException {
-		return TypesGen.expectJumpLambda(executeGeneric(frame));
+	public int executeInteger(VirtualFrame frame) throws UnexpectedResultException {
+		return TypesGen.expectInteger(executeGeneric(frame));
 	}
 	
-	public RegLambda executeRegLambda(VirtualFrame frame) throws UnexpectedResultException {
-		return TypesGen.expectRegLambda(executeGeneric(frame));
+	public long[] executeLongArray(VirtualFrame frame) throws UnexpectedResultException {
+		return TypesGen.expectLongArray(executeGeneric(frame));
 	}
 	
-	public MemLambda executeMemLambda(VirtualFrame frame) throws UnexpectedResultException {
-		return TypesGen.expectMemLambda(executeGeneric(frame));
+	public Memory executeMemory(VirtualFrame frame) throws UnexpectedResultException {
+		return TypesGen.expectMemory(executeGeneric(frame));
 	}
 	
 }
