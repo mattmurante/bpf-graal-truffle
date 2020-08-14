@@ -53,7 +53,6 @@ public class VM {
             if (!result.isNull()) {
                 out.println(result.toString());
             }
-            return 0;
         } catch (PolyglotException ex) {
             if (ex.isInternalError()) {
                 // for internal errors we print the full stack trace
@@ -61,10 +60,10 @@ public class VM {
             } else {
                 err.println(ex.getMessage());
             }
-            return 1;
         } finally {
             context.close();
         }
+        return 0;
     }
 	
 }

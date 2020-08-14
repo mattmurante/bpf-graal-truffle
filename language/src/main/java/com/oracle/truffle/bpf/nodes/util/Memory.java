@@ -1,31 +1,35 @@
 package com.oracle.truffle.bpf.nodes.util;
 
-import java.util.HashMap;
-
 //Implementation of memory_map from RPython VM
 
 public class Memory {
-	// Does this really need to be a hashmap? Do we ever use names?
-	private final HashMap<String, MemoryRegion> mem = new HashMap<String, MemoryRegion>();
+	
+	private static final int MAX_MEMORY_PARTITIONS = 3;
+	
+	private final MemoryRegion[] mem = new MemoryRegion[MAX_MEMORY_PARTITIONS];
+	private int size = 0;
 
-	public void addRegion(String name, MemoryRegion memRegion) throws Exception {
-		for (MemoryRegion m : mem.values()) {
-			if (m.overlaps(memRegion))
+	public void addRegion(MemoryRegion memRegion) throws Exception {
+		if (size >= MAX_MEMORY_PARTITIONS) {
+			throw new Exception("Cannot exceed maximum number of memory partitions");
+		}
+		for (int i = 0; i < size; i++) {
+			if (mem[i].overlaps(memRegion))
 				throw new Exception("Cannot add overlapping memory region");
 		}
-		mem.put(name, memRegion);
+		mem[size++] = memRegion;
 	}
 
 	public MemoryRegion getRegion(long address) throws Exception {
-		for (MemoryRegion m : mem.values()) {
-			if (m.containsAddr(address)) {
-				return m;
+		for (int i = 0; i < size; i++) {
+			if (mem[i].containsAddr(address)) {
+				return mem[i];
 			}
 		}
 		throw new Exception("No memory region for specified address");
 	}
 
-	public HashMap<String, MemoryRegion> getMemory() {
+	public MemoryRegion[] getMemory() {
 		return mem;
 	}
 

@@ -19,10 +19,10 @@ public class BPFParser {
 		int count = 0;
 		ByteBuffer bb = ByteBuffer.wrap(program);
 		//Preparing frame slots for use
-		FrameDescriptor desc = new FrameDescriptor();
-		FrameSlot pcSlot = desc.findOrAddFrameSlot("pc", FrameSlotKind.Int);
-		FrameSlot regsSlot = desc.findOrAddFrameSlot("regs", FrameSlotKind.Object);
-		FrameSlot memSlot = desc.findOrAddFrameSlot("mem", FrameSlotKind.Object);
+		final FrameDescriptor desc = new FrameDescriptor();
+		final FrameSlot pcSlot = desc.findOrAddFrameSlot("pc", FrameSlotKind.Int);
+		final FrameSlot regsSlot = desc.findOrAddFrameSlot("regs", FrameSlotKind.Object);
+		final FrameSlot memSlot = desc.findOrAddFrameSlot("mem", FrameSlotKind.Object);
 		/* May need to change byte order depending on system - i.e. change to
 		 * ByteOrder.nativeOrder() assuming bpf program is generated on local machine
 		*/

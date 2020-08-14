@@ -40,8 +40,10 @@ public class ProgramNode extends RootNode {
 		registers[10] = 16384 * 8;
 		Memory memory = new Memory();
 		try {
-			memory.addRegion("Program", new MemoryRegion(0, program));
-			memory.addRegion("Stack", new MemoryRegion((16384 * 8 - STACK_SIZE), new byte[STACK_SIZE]));
+			//Storing program in memory
+			memory.addRegion(new MemoryRegion(0, program));
+			//Storing stack in memory
+			memory.addRegion(new MemoryRegion((16384 * 8 - STACK_SIZE), new byte[STACK_SIZE]));
 		} catch (Exception e) {
 			System.out.println("Memory regions could not be added to memory map successfully");
 		}

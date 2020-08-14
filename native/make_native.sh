@@ -45,7 +45,7 @@ if [[ $BPF_BUILD_NATIVE == "false" ]]; then
     exit 0
 fi
 "$JAVA_HOME"/bin/native-image \
-    --macro:truffle --no-fallback --initialize-at-build-time \
+    --macro:truffle --no-fallback --initialize-at-build-time --tool:profiler \
     -cp ../language/target/bpflanguage.jar:../launcher/target/bpf-launcher.jar \
     com.oracle.truffle.bpf.launcher.VM \
     bpfnative
