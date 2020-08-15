@@ -1,18 +1,17 @@
 package com.oracle.truffle.bpf.nodes.mem;
 
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.bpf.nodes.ExpressionNode;
+import com.oracle.truffle.bpf.nodes.InstructionNode;
 import com.oracle.truffle.bpf.nodes.util.Memory;
 import com.oracle.truffle.bpf.nodes.util.MemoryRegion;
 import com.oracle.truffle.bpf.nodes.util.NotYetImplemented;
-import com.oracle.truffle.bpf.nodes.util.ReadMemory;
-import com.oracle.truffle.bpf.nodes.util.ReadRegs;
 
 @NodeInfo(language = "BPF", description = "Base node for each memory operation")
-@NodeChild(value = "regs", type = ReadRegs.class)
-@NodeChild(value = "memory", type = ReadMemory.class)
-public abstract class MemExpressionNode extends ExpressionNode {
+public abstract class MemExpressionNode extends InstructionNode {
+
+	public MemExpressionNode(byte opcode, byte srcReg, byte destReg, short offset, int imm) {
+		super(opcode, srcReg, destReg, offset, imm);
+	}
 	
 	// Read and write methods from RPython implementation
 

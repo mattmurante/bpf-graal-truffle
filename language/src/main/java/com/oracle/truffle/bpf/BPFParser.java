@@ -4,8 +4,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.bpf.nodes.InstructionNode;
 import com.oracle.truffle.bpf.nodes.ProgramNode;
@@ -20,15 +18,12 @@ public class BPFParser {
 		ByteBuffer bb = ByteBuffer.wrap(program);
 		//Preparing frame slots for use
 		final FrameDescriptor desc = new FrameDescriptor();
-		final FrameSlot pcSlot = desc.findOrAddFrameSlot("pc", FrameSlotKind.Int);
-		final FrameSlot regsSlot = desc.findOrAddFrameSlot("regs", FrameSlotKind.Object);
-		final FrameSlot memSlot = desc.findOrAddFrameSlot("mem", FrameSlotKind.Object);
 		/* May need to change byte order depending on system - i.e. change to
 		 * ByteOrder.nativeOrder() assuming bpf program is generated on local machine
 		*/
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 		InstructionNode[] insts = new InstructionNode[program.length/8];
-		BPFNodeFactory factory = new BPFNodeFactory(pcSlot, regsSlot, memSlot);
+		BPFNodeFactory factory = new BPFNodeFactory();
 		while (8 + (count*8) <= program.length) {
 			try {
 				final byte opcode = bb.get();
@@ -75,7 +70,7 @@ public class BPFParser {
 				System.exit(-1);
 			}
 		}
-		return new ProgramNode(language, desc, pcSlot, regsSlot, memSlot, insts, program);
+		return new ProgramNode(language, desc, insts, program);
 	}
 	
 }

@@ -4,7 +4,7 @@ import com.oracle.truffle.api.dsl.TypeSystem;
 
 //Defines a typesystem for the Truffle API
 
-@TypeSystem({boolean.class, int.class, long[].class, Memory.class})
+@TypeSystem({boolean.class})
 
 public class Types {
 }

@@ -3,7 +3,6 @@
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu/XOR_REG.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu/RSH_REG.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/mem/LDXB.java
-/Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/ALU64ExpressionNode.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/SUB64_REG.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/util/EBPFOpcodes.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu/LSH_REG.java
@@ -54,8 +53,6 @@
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu/MOD_REG.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/AND64_IMM.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/NEG64.java
-/Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/ExpressionNode.java
-/Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu/ALUExpressionNode.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu/ARSH_IMM.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/MOV64_IMM.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/BPFContext.java
@@ -89,7 +86,6 @@
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/ARSH64_REG.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/jump/JSGT_IMM.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/jump/JSET_REG.java
-/Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/jump/JumpExpressionNode.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/jump/JLE_IMM.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/RSH64_IMM.java
 /Users/mattmurante/Documents/Work/Graal BPF/bpf/bpflanguage-master/language/src/main/java/com/oracle/truffle/bpf/nodes/alu64/MOV64_REG.java
