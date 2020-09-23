@@ -1,6 +1,5 @@
 package com.oracle.truffle.bpf.nodes.jump;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -15,7 +14,6 @@ public abstract class JSET_IMM extends InstructionNode {
 	}
 
 	@Specialization
-	@TruffleBoundary
 	public boolean operation(@CachedLanguage BPFLanguage language) {
 		int pc = language.getPc() + 1;
 		long[] regs = language.getRegisters();

@@ -7,7 +7,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.bpf.BPFLanguage;
-import com.oracle.truffle.bpf.nodes.util.MemoryRegion;
+import com.oracle.truffle.bpf.nodes.util.Memory;
 
 //Primarily drawn from SequenceNode in Stefan Marr's Graal & Truffle blogpost
 
@@ -23,17 +23,24 @@ public class ProgramNode extends RootNode {
 		this.insts = insts;
 		this.program = program;
 		this.language = language;
+		storeProgram();
 	}
 
+	public void storeProgram() {
+		//Storing program in memory
+		try {
+			Memory memory = language.getMemory();
+			memory.addRegion(0, program.length);
+			memory.setByteArray(0, program);
+		} catch (Exception e) {
+			System.err.println("Program could not be allocated successfully");
+		}
+	}
+	
 	// Executes program by running through each statement in sequence
 	@ExplodeLoop
 	public Object execute(VirtualFrame frame) {
-		//Storing program in memory
-		try {
-			language.getMemory().addRegion(new MemoryRegion(0, program));
-		} catch (Exception e) {
-			System.err.println("Program could not be allocate successfully");
-		}
+		long result = 0;
 		int pc = 0;
 		boolean running = true;
 		// Executing each instruction node
@@ -46,7 +53,7 @@ public class ProgramNode extends RootNode {
 			pc = language.getPc();
 		}
 		// Output register 0's contents as result
-		long result = language.getRegisters()[0];
+		result = language.getRegisters()[0];
 		return result;
 	}
 }

@@ -5,16 +5,24 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Context.Builder;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.io.ByteSequence;
+import org.graalvm.launcher.AbstractLanguageLauncher;
+import org.graalvm.options.OptionCategory;
 
 //Class to execute virtual machine on BPF program file
+//TODO: Switch to abstract language launcher child class
 
-public class VM {
+public class VM {//extends AbstractLanguageLauncher {
 	
 	//Constant language identifier
 	private static final String BPF = "bpf";
@@ -39,13 +47,17 @@ public class VM {
         //Setup context and get engine
     	Context context;
         PrintStream err = System.err;
+//        HashMap<String, String> options = new HashMap<String, String>();
+//        options.put("coverage", "true");
+//        options.put("cpusampler", "true");
+//        options.put("cpusampler.Delay", "10000");
         try {
-            context = Context.newBuilder(BPF).build();
+//            context = Context.newBuilder(BPF).allowExperimentalOptions(true).options(options).build();
+        	context = Context.newBuilder(BPF).build();
         } catch (IllegalArgumentException e) {
             err.println(e.getMessage());
             return 1;
         }
-        out.println("== running on " + context.getEngine());
         
         //Evaluate source code
         try {

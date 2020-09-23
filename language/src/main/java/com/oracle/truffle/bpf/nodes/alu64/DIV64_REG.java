@@ -1,6 +1,5 @@
 package com.oracle.truffle.bpf.nodes.alu64;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -15,7 +14,6 @@ public abstract class DIV64_REG extends InstructionNode {
 	}
 
 	@Specialization
-	@TruffleBoundary
 	public boolean operation(@CachedLanguage BPFLanguage language) {
 		language.incPc();
 		long[] regs = language.getRegisters();

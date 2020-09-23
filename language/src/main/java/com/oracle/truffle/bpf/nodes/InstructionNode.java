@@ -21,6 +21,4 @@ public abstract class InstructionNode extends BaseNode {
 		this.imm = imm;
 	}
 	
-	// TODO: How to handle fn calls?
-	
 }

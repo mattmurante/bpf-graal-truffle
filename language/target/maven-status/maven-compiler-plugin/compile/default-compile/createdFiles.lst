@@ -8,5 +8,4 @@ com/oracle/truffle/bpf/nodes/BaseNode.class
 META-INF/services/com.oracle.truffle.api.TruffleLanguage$Provider
 com/oracle/truffle/bpf/nodes/util/EBPFOpcodes.class
 com/oracle/truffle/bpf/BPFLanguageProvider.class
-com/oracle/truffle/bpf/nodes/util/MemoryRegion.class
 com/oracle/truffle/bpf/BPFLanguage.class

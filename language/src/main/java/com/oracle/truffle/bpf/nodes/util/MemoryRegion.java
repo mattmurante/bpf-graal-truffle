@@ -3,15 +3,15 @@ package com.oracle.truffle.bpf.nodes.util;
 //Inspired from MemoryRegion class in RPython implementation
 
 public class MemoryRegion {
-
+	
 	private final long start;
 	private final long end;
-	private final byte[] region;
+	private final long realAddr;
 
-	public MemoryRegion(long start, byte[] region) {
+	public MemoryRegion(long start, long size, long realAddr) {
 		this.start = start;
-		this.end = start + region.length - 1;
-		this.region = region;
+		this.end = start + size - 1;
+		this.realAddr = realAddr;
 	}
 
 	public boolean overlaps(MemoryRegion memRegion) {
@@ -33,9 +33,9 @@ public class MemoryRegion {
 	public long getEnd() {
 		return end;
 	}
-
-	public byte[] getRegion() {
-		return region;
+	
+	public long realFromVirtual(long virtualAddr) {
+		return realAddr + (virtualAddr-start);
 	}
-
+	
 }

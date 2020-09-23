@@ -2,7 +2,6 @@ package com.oracle.truffle.bpf.nodes.other;
 
 import java.nio.ByteOrder;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -16,7 +15,6 @@ public abstract class LE extends ByteswapExpressionNode {
 	}
 
 	@Specialization
-	@TruffleBoundary
 	public boolean operation(@CachedLanguage BPFLanguage language) {
 		language.incPc();
 		long[] regs = language.getRegisters();

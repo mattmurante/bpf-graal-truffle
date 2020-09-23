@@ -6,8 +6,10 @@ import com.oracle.truffle.bpf.nodes.alu64.*;
 import com.oracle.truffle.bpf.nodes.jump.*;
 import com.oracle.truffle.bpf.nodes.mem.*;
 import com.oracle.truffle.bpf.nodes.other.BENodeGen;
+import com.oracle.truffle.bpf.nodes.other.CALLNodeGen;
 import com.oracle.truffle.bpf.nodes.other.EXITNodeGen;
 import com.oracle.truffle.bpf.nodes.other.LENodeGen;
+import com.oracle.truffle.bpf.nodes.other.VectorInstNodeGen;
 import com.oracle.truffle.bpf.nodes.util.EBPFOpcodes;
 import com.oracle.truffle.bpf.nodes.util.NotYetImplemented;
 
@@ -86,6 +88,9 @@ public class BPFNodeFactory {
 				break;
 			case EBPFOpcodes.EBPF_OP_JSLT_REG:
 				inst = JSLT_REGNodeGen.create(opcode, srcReg, destReg, offset, imm);
+				break;
+			case EBPFOpcodes.EBPF_OP_CALL:
+				inst = CALLNodeGen.create(opcode, srcReg, destReg, offset, imm);
 				break;
 			case EBPFOpcodes.EBPF_OP_EXIT:
 				inst = EXITNodeGen.create(opcode, srcReg, destReg, offset, imm);
@@ -314,6 +319,10 @@ public class BPFNodeFactory {
 				break;
 			case EBPFOpcodes.EBPF_OP_STXW:
 				inst = STXWNodeGen.create(opcode, srcReg, destReg, offset, imm);
+				break;
+			//Test vector instruction
+			case 0x06:
+				inst = VectorInstNodeGen.create(opcode, srcReg, destReg, offset, imm);
 				break;
 			default:
 				throw new NotYetImplemented();

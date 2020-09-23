@@ -105,7 +105,7 @@ public final class EBPFOpcodes {
 	public static final byte EBPF_OP_JSGT_REG = (EBPF_CLS_JMP | EBPF_SRC_REG | 0x60);
 	public static final byte EBPF_OP_JSGE_IMM = (EBPF_CLS_JMP | EBPF_SRC_IMM | 0x70);
 	public static final byte EBPF_OP_JSGE_REG = (EBPF_CLS_JMP | EBPF_SRC_REG | 0x70);
-//	  public static final byte EBPF_OP_CALL     = (byte) (EBPF_CLS_JMP|0x80);
+	public static final byte EBPF_OP_CALL     = (byte) (EBPF_CLS_JMP|0x80);
 	public static final byte EBPF_OP_EXIT = (byte) (EBPF_CLS_JMP | 0x90);
 	public static final byte EBPF_OP_JLT_IMM = (byte) (EBPF_CLS_JMP | EBPF_SRC_IMM | 0xa0);
 	public static final byte EBPF_OP_JLT_REG = (byte) (EBPF_CLS_JMP | EBPF_SRC_REG | 0xa0);
