@@ -17,11 +17,6 @@ import java.util.List;
 public final class BPFLanguageProvider implements Provider {
 
     @Override
-    public String getLanguageClassName() {
-        return "com.oracle.truffle.bpf.BPFLanguage";
-    }
-
-    @Override
     public TruffleLanguage<?> create() {
         return new BPFLanguage();
     }
@@ -29,6 +24,11 @@ public final class BPFLanguageProvider implements Provider {
     @Override
     public List<FileTypeDetector> createFileTypeDetectors() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public String getLanguageClassName() {
+        return "com.oracle.truffle.bpf.BPFLanguage";
     }
 
     @Override

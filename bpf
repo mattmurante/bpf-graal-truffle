@@ -111,9 +111,9 @@ if [[ "$GRAALVM_VERSION" != "" ]]; then
 	###ADD ON FOR VECTORIZATION
 	JAVA_ARGS+=("-Dgraal.Vectorization=true")
 	###ADD ON FOR EXAMINING GRAAL'S COMPILATION ACTIONS
-#	JAVA_ARGS+=("-Diterations=100" "-Dgraal.PrintCompilation=true" "-Dgraal.LogFile=/Users/mattmurante/Desktop/GraalOut.txt")
+#	JAVA_ARGS+=("-Dgraal.PrintCompilation=true" "-Dgraal.LogFile=/Users/mattmurante/Desktop/GraalOut.txt")
 	###ADD ON FOR EXAMINING COMPILED CODE
-	JAVA_ARGS+=("-XX:+UnlockDiagnosticVMOptions" "-XX:CompileCommand=print,*VectorInst.operation")
+#	JAVA_ARGS+=("-XX:+UnlockDiagnosticVMOptions" "-XX:CompileCommand=print,*VectorInst.operation")
     for opt in "$@"
     do
       case $opt in

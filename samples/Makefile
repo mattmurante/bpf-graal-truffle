@@ -1,4 +1,4 @@
-all: primes.bpf euler49.bpf
+all: primes.bpf primes_1000.bpf primes_10000.bpf euler49.bpf
 
 # make for bpf
 %.o: %.c
@@ -9,4 +9,4 @@ all: primes.bpf euler49.bpf
 	gcc -O2 -fsanitize=address -DDEBUG $< -o $@
 
 %.bpf: %.o
-	python3 ../bpfvm/loader.py $< $@
+	python3 loader.py $< $@
